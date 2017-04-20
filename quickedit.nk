@@ -1,271 +1,48 @@
 Group {
- inputs 7
- name quickEdit1
- help http://richardfrazer.com/tools-tutorials/frameblendmerge/
+ name quickEdit
+ help http://richardfrazer.com/tools-tutorials/
  knobChanged "if nuke.thisKnob().name() == 'inputChange': updateInputs( )"
  selected true
- xpos 179
- ypos -169
+ xpos 112
+ ypos -337
  addUserKnob {20 User}
- addUserKnob {3 startatframe l Frame}
+ addUserKnob {26 instructions l " " T "Click \"Update\" to activate node before use..."}
+ addUserKnob {26 "" +STARTLINE}
+ addUserKnob {3 startatframe l "Start frame"}
  startatframe 1001
  addUserKnob {6 startat l "Start at specific frame" -STARTLINE}
  startat true
  addUserKnob {26 ""}
- addUserKnob {3 handles l Frames}
+ addUserKnob {3 handles l Handles}
  handles 8
  addUserKnob {6 use_handles l "Use handles" -STARTLINE}
  use_handles true
  addUserKnob {26 ""}
  addUserKnob {3 inout l Keyframe}
- inout {{curve x1001 0 x1114 0 x1160 0 x1231 0 x1369 0 x1408 0 x1457 0}}
+ inout {{curve}}
  addUserKnob {6 keyin l in -STARTLINE}
  keyin true
  addUserKnob {6 keyout l out -STARTLINE}
  addUserKnob {26 ""}
- addUserKnob {22 update l Update T "def updateInputs():\n\n\tt = nuke.thisNode()\n\n\ttname = t.name()\n\n\tnuke.thisNode().begin()\n\n\tusehandles = t\['use_handles'].value()\n\tt\['handles'].setEnabled(usehandles)\n\thandles = t\['handles'].value()\n\n\tstartat = t\['startat'].value()\n\tt\['startatframe'].setEnabled(startat)\n\tstartatframe = t\['startatframe'].value()\n\n\tkeyin = t\['keyin'].value()\n\tkeyout = t\['keyout'].value()\n\n\tio = t\['inout']\n\tio.setAnimated(1)\n\tfor curve in io.animations():\n\t    curve.clear()\n\n\tmaxinputs = 0 \n\n\tinputlist = \[]\n\n\tearliestframe = 9999999999999999999 \n\n\txend = 0\n\n\n\tfor x in range(0, t.maximumInputs()):\n\t    if t.input(x) is not None:\n\t\t#print \"Input \" + str(x) + \" is \" + t.input(x).name()\n\t\tinputlist.insert( maxinputs, x)\n\t\tff = t.input(x).firstFrame()\n\t\tif (ff < earliestframe):\n\t\t    earliestframe = ff\n\t\txend = x\n\t\tmaxinputs = maxinputs + 1\n\t    else:\n\t\tprint \"Input \" + str(x) + \" is None\"\n\n\txend = xend + 1\n\n\t#print \"Inputs \" + str(maxinputs)\n\t#print \"InputList \" + str(inputlist)\n\t#print \"earliestframe \" + str(earliestframe)\n\t#print \"xend \" + str(xend)\n\n\tfor d in nuke.allNodes():\n\t    nuke.delete(d)  \n\n\tp = -1000\n\n\tif (startat):\n\t    firstframe = startatframe\n\telse:\n\t    firstframe = earliestframe\n\n\tlastout = firstframe \n\n\ttotalframes = 0\n\n\tedlclips = \"\"\n\n\n\tfor j in range(0, xend):\n\n\n\t    iname = 'Input' +str(j)\n\t    #print \"creating input \" + iname + \" \" + str(j)\n\n\t    newInput = nuke.createNode('Input')\n\t    newInput\['name'].setValue( iname )\n\t    newInput.setXYpos( p, 550 )  \n\t    newInput\['label'].setValue( \"\[value number]\" )\n\t    newInput\['number'].setValue( j )\n\n\t    #print \"checking for \" + str(j) + \" in \" + str(inputlist)\n\n\t    if j in inputlist:\n\t\t#print \"found \" + str(j)\n\t\ti = t.input(j)\n\t\ttf = t.upstreamFrameRange(j)\n\t\tprint tf\n\t\ttff = tf.first()\n\t\ttfl = tf.last()\n\t\tif(usehandles):\n\t\t    tff = tff + handles\n\t\t    tfl = tfl - handles\n\t\tf = (tfl - tff)+1\n\t\t#jname = i.name()\n\t\t#print f\n\t\tkname = 'Retime' +str(j)\n\t\t#print kname\n\t\tk = nuke.createNode( 'Retime' ) \n\t\tk\['name'].setValue( kname )\n\t\tk\['input.first_lock'].setValue('true')\n\t\tk\['input.last_lock'].setValue('true')  \n\t\tk\['input.first'].setValue( tff )\n\t\tk\['input.last'].setValue( tfl )   \n\t\tk\['before'].setValue('black')  \n\t\tk\['after'].setValue('black')  \n\t\tk.setXYpos( p, 600 )\n\t\t#ki = 'Input' +str(j)\n\t\tk.setInput(0, nuke.toNode( iname ))\n\n\t\trname = 'TimeOffset' +str(j)\n\t\tprint rname\n\t\tr = nuke.createNode( 'TimeOffset' ) \n\t\tr\['name'].setValue( rname )\n\t\troffset = lastout - tff\n\t\tr\['time_offset'].setValue( roffset )\n\n\n\t\tfin = int(lastout)\n\t\tfout = int(lastout+(f-1))\n\n\t\tif (keyin):\n\t\t    io.animation(0).setKey(fin,0)\n\t\tif (keyout):\n\t\t    io.animation(0).setKey(fout,0)\n\n\n\t\tedlclip = str(j) + \") \" + i.name() +  \"    \[\" + str(fin) + \"-\" + str(fout) + \"]    (\" + str(int(f)) + \" frames)\\n\"\n\n\t\tedlclips = edlclips + edlclip\n\n\t\tr.setXYpos( p, 650 )\n\t\tr.setInput(0, nuke.toNode( kname ))\n\n\t\ttotalframes = totalframes + f\n\n\t\tlastout = lastout + f\n\n\t    p = p + 100\n\n\tiname = 'Input' +str(xend)\n\tnewInput = nuke.createNode('Input')\n\tnewInput\['name'].setValue( iname )\n\tnewInput\['label'].setValue( \"\[value number]\" )\n\tnewInput.setXYpos( p, 550 )  \n\tnewInput\['number'].setValue( xend)\n\n\tnewMerge = nuke.createNode('Merge2')\n\tnewMerge\['name'].setValue( 'MergeFrames' )\n\tnewMerge.setXYpos( -900, 700 )  \n\n\tmi = 0\n\n\tfor j in range(0, xend):\n\t    if j in inputlist:\n\t\tprint \"found \" + str(j)\n\t\tx = j\n\t\trname = 'TimeOffset' +str(x)\n\t\tif(mi==2):\n\t\t    mi=mi+1\n\t\tprint(\"connecting input \" + str(mi) + \" to node \" + rname)\n\t\tnewMerge.setInput(mi, nuke.toNode( rname ))\n\t\tmi=mi+1\n\n\tnewRetime = nuke.createNode( 'Retime' ) \n\tnewRetime\['name'].setValue( 'FinalRetime' )\n\tnewRetime\['input.first_lock'].setValue('true')\n\tnewRetime\['input.last_lock'].setValue('true')  \n\tnewRetime\['input.first'].setValue( firstframe )\n\tnewRetime\['input.last'].setValue( firstframe + (totalframes -1 ) )   \n\tnewRetime\['before'].setValue('black')  \n\tnewRetime\['after'].setValue('black')  \n\tnewRetime.setXYpos( -900, 750 )\n\tnewRetime.setInput(0, nuke.toNode( 'MergeFrames' ))\n\n\n\tnewOutput = nuke.createNode('Output')\n\tnewOutput\['name'].setValue( 'Output' )\n\tnewOutput.setXYpos( -900, 800 )  \n\tnewOutput.setInput(0, nuke.toNode( 'FinalRetime' ))\n\n\tt\['edlclips'].setValue(edlclips)\n\n\tnewOutput.hideControlPanel()\n\n\tnuke.show(nuke.toNode(tname))\n\n\tt.showControlPanel()\n\n\tt.end()\n\nupdateInputs()\n" +STARTLINE}
+ addUserKnob {4 reformattype l Reformat M {none width height fit fill distort "" ""}}
+ reformattype width
+ addUserKnob {26 ""}
+ addUserKnob {22 update l Update T "def frames_to_timecode(frames):\n\tframerate = nuke.root().fps()\n\th = frames / (3600*framerate)\n\tm = frames / (60*framerate) % 60\n\ts = frames / framerate % 60\n\tf = frames % framerate\n\treturn ( \"%02d\" % (h,)  + \":\" +  \"%02d\" % (m,) + \":\" +  \"%02d\" % (s,) + \":\" +  \"%02d\" % (f,))\n\ndef updateInputs():\n\n\tt = nuke.thisNode()\n\n\ttname = t.name()\n\n\tnuke.thisNode().begin()\n\n\n\tusehandles = t\['use_handles'].value()\n\tt\['handles'].setEnabled(usehandles)\n\thandles = t\['handles'].value()\n\n\tstartat = t\['startat'].value()\n\tt\['startatframe'].setEnabled(startat)\n\tstartatframe = t\['startatframe'].value()\n\n\t#print \"usehandles \" + str(usehandles)\n\n\tkeyin = t\['keyin'].value()\n\tkeyout = t\['keyout'].value()\n\n\tio = t\['inout']\n\tio.setAnimated(1)\n\tfor curve in io.animations():\n\t    curve.clear()\n\n\tmaxinputs = 0 \n\n\tinputlist = \[]\n\n\tearliestframe = 9999999999999999999 \n\n\txend = 0\n\n\n\tfor x in range(0, t.maximumInputs()):\n\t    if t.input(x) is not None:\n\t\t#print \"Input \" + str(x) + \" is \" + t.input(x).name()\n\t\tinputlist.insert( maxinputs, x)\n\t\tff = t.input(x).firstFrame()\n\t\tif (ff < earliestframe):\n\t\t    earliestframe = ff\n\t\txend = x\n\t\tmaxinputs = maxinputs + 1\n#\t    else:\n#\t\tprint \"Input \" + str(x) + \" is None\"\n\n\txend = xend + 1\n\n\t#print \"Inputs \" + str(maxinputs)\n\t#print \"InputList \" + str(inputlist)\n\t#print \"earliestframe \" + str(earliestframe)\n\t#print \"xend \" + str(xend)\n\n\tfor d in nuke.allNodes():\n\t    nuke.delete(d)  \n\n\tfj = 0\n\n\tp = -1000\n\n\n\tedl01 = \"\"\n\tedl02 = \"\"\n\tedl03 = \"\"\n\tedl04 = \"\"\n\n\tif (len(inputlist)):\n\n\t\tif (startat):\n\t\t    firstframe = startatframe\n\t\telse:\n\t\t    firstframe = earliestframe\n\n\t\tlastout = firstframe \n\n\t\ttotalframes = 0\n\n\t\tfor j in range(0, xend):\n\n\n\t\t    iname = 'Input' +str(j)\n\t\t    #print \"creating input \" + iname + \" \" + str(j)\n\n\t\t    newInput = nuke.createNode('Input')\n\t\t    newInput\['name'].setValue( iname )\n\t\t    newInput.setXYpos( p, 450 )  \n\t\t    newInput\['label'].setValue( \"\[value number]\" )\n\t\t    newInput\['number'].setValue( j )\n\n\t\t    #print \"checking for \" + str(j) + \" in \" + str(inputlist)\n\n\t\t    if j in inputlist:\n\t\t\t#print \"found \" + str(j)\n\t\t\ti = t.input(j)\n\t\t\ttf = t.upstreamFrameRange(j)\n\t\t\t#print tf\n\t\t\ttff = tf.first()\n\t\t\ttfl = tf.last()\n\t\t\tif(usehandles):\n\t\t\t    tff = tff + handles\n\t\t\t    tfl = tfl - handles\n\t\t\tf = (tfl - tff)+1\n\t\t\tjname = i.name()\n\t\t\t#print f\n\t\t\tif(f < 1):\n\t\t\t\t#print \"Input \"+str(j)+\" is too short (\" + str(f) +\" frames)\"\n\t\t\t\t#print \"Disconnecting input \" + str(j)\n\t\t\t\tnuke.message (\"Input '\" + jname + \"' is too short (\" + str(f) +\" frames)\")\n\t\t\t\tt.setInput(j, None)\n\t\t\telse:\n\n\t\t\t\trname = 'Reformat' +str(j)\n\t\t\t\tnewReformat = nuke.createNode('Reformat')\n\t\t\t\tnewReformat\['name'].setValue( rname )\n\t\t\t\tnewReformat.setXYpos( p, 550 )  \n\t\t\t\tnewReformat.setInput(0, nuke.toNode( iname ))\n\t\t\t\tnewReformat\['resize'].setValue( t\['reformattype'].value() )\n\t\t\t\t#print \"Reformat type: \" + str(t\['reformattype'].value())\n\n\t\t\t\tkname = 'Retime' +str(j)\n\t\t\t\t#print kname\n\t\t\t\tk = nuke.createNode( 'Retime' ) \n\t\t\t\tk\['name'].setValue( kname )\n\t\t\t\tk\['input.first_lock'].setValue('true')\n\t\t\t\tk\['input.last_lock'].setValue('true')  \n\t\t\t\tk\['input.first'].setValue( tff )\n\t\t\t\tk\['input.last'].setValue( tfl )   \n\t\t\t\tk\['before'].setValue('black')  \n\t\t\t\tk\['after'].setValue('black')  \n\t\t\t\tk.setXYpos( p, 600 )\n\t\t\t\t#ki = 'Input' +str(j)\n\t\t\t\tk.setInput(0, nuke.toNode( rname ))\n\n\t\t\t\toname = 'TimeOffset' +str(j)\n\t\t\t\t#print oname\n\t\t\t\to = nuke.createNode( 'TimeOffset' ) \n\t\t\t\to\['name'].setValue( oname )\n\t\t\t\tooffset = lastout - tff\n\t\t\t\to\['time_offset'].setValue( ooffset )\n\t\t\t\to.setXYpos( p, 650 )\n\t\t\t\to.setInput(0, nuke.toNode( kname ))\n\n\t\t\t\tfin = int(lastout)\n\t\t\t\tfout = int(lastout+(f-1))\n\n\t\t\t\tif (keyin):\n\t\t\t\t    io.animation(0).setKey(fin,0)\n\t\t\t\tif (keyout):\n\t\t\t\t    io.animation(0).setKey(fout,0)\n\n\t\t\t\tedl01 = edl01 + str(j) + \") \" + i.name() + \"\\n\"\n\t\t\t\tedl02 = edl02 + \"  \[\" + str(fin) + \"-\" + str(fout) + \"]\\n\"\n\t\t\t\tedl03 = edl03 + \"  (\" + str(int(f)) + \" frames)\\n\"\n\t\t\t\tedl04 = edl04 + \"  \" + frames_to_timecode(int(f)) + \"\\n\"\n\n\t\t\t\ttotalframes = totalframes + f\n\n\t\t\t\tlastout = lastout + f\n\n\t\t    p = p + 100\n\t\n\t\tedl01 = edl01 + \"\\nTotal\"\n\t\tedl02 = edl02 + \"\\n  \[\" + str(int(firstframe)) + \"-\" + str(fout) + \"]\"\n\t\tedl03 = edl03 + \"\\n  (\" + str(int(totalframes)) + \" frames)\"\n\t\tedl04 = edl04 + \"\\n  \" + frames_to_timecode(int(totalframes)) + \"\"\n\n\t\tfj=j+1\n\n\t\tnewMerge = nuke.createNode('Merge2')\n\t\tnewMerge\['name'].setValue( 'MergeFrames' )\n\t\tnewMerge.setXYpos( -900, 700 )  \n\n\t\tmi = 0\n\n\t\tfor j in range(0, xend):\n\t\t    if j in inputlist:\n\t\t\t#print \"found \" + str(j)\n\t\t\tx = j\n\t\t\trname = 'TimeOffset' +str(x)\n\t\t\tif(mi==2):\n\t\t\t    mi=mi+1\n\t\t\t#print(\"connecting input \" + str(mi) + \" to node \" + rname)\n\t\t\tnewMerge.setInput(mi, nuke.toNode( rname ))\n\t\t\tmi=mi+1\n\n\n\t\tfinalRetime = nuke.createNode( 'Retime' ) \n\t\tfinalRetime\['name'].setValue( 'FinalRetime' )\n\t\tfinalRetime\['input.first_lock'].setValue('true')\n\t\tfinalRetime\['input.last_lock'].setValue('true')  \n\t\tfinalRetime\['input.first'].setValue( firstframe )\n\t\tfinalRetime\['input.last'].setValue( firstframe + (totalframes -1 ) )   \n\t\tfinalRetime\['before'].setValue('black')  \n\t\tfinalRetime\['after'].setValue('black')  \n\t\tfinalRetime.setXYpos( -900, 750 )\n\t\tfinalRetime.setInput(0, nuke.toNode( 'MergeFrames' ))\n\n\n\t\tnewOutput = nuke.createNode('Output')\n\t\tnewOutput\['name'].setValue( 'Output' )\n\t\tnewOutput.setXYpos( -900, 800 )  \n\t\tnewOutput.setInput(0, nuke.toNode( 'FinalRetime' ))\n\n\t\tnewOutput.hideControlPanel()\n\n\tt\['edl01'].setValue(edl01)\n\tt\['edl02'].setValue(edl02)\n\tt\['edl03'].setValue(edl03)\n\tt\['edl04'].setValue(edl04)\n\n\tiname = 'Input' +str(fj)\n\t#print \"creating final empty input \" + iname + \" \" + str(fj)\n\n\tnewInput = nuke.createNode('Input')\n\tnewInput\['name'].setValue( iname )\n\tnewInput.setXYpos( p, 450 )  \n\tnewInput\['label'].setValue( \"\[value number]\" )\n\tnewInput\['number'].setValue( fj )\n\n\tnuke.show(nuke.toNode(tname))\n\n\tnuke.toNode(tname).showControlPanel()\n\n\tt.end()\n\nupdateInputs()\n" +STARTLINE}
  addUserKnob {52 func l INVISIBLE +INVISIBLE T "def updateInputs( ):\n    if nuke.thisKnob().name() == 'inputChange': print 'beep! input has Changed'" +STARTLINE}
  addUserKnob {26 ""}
- addUserKnob {26 edlclips l " " T "0) OCIOColorSpace163    \[1001-1113]    (113 frames)\n1) OCIOColorSpace225    \[1114-1159]    (46 frames)\n2) OCIOColorSpace236    \[1160-1230]    (71 frames)\n3) OCIOColorSpace203    \[1231-1368]    (138 frames)\n4) OCIOColorSpace233    \[1369-1407]    (39 frames)\n5) OCIOColorSpace234    \[1408-1456]    (49 frames)\n6) Retime1    \[1457-1450]    (-6 frames)\n"}
+ addUserKnob {26 edl01 l " " T ""}
+ addUserKnob {26 edl02 l "" -STARTLINE T ""}
+ addUserKnob {26 edl03 l "" -STARTLINE T ""}
+ addUserKnob {26 edl04 l "" -STARTLINE T ""}
  addUserKnob {26 ""}
- addUserKnob {26 textabout l "" +STARTLINE T "QuickEdit v0.1 by Richard Frazer\n"}
- addUserKnob {20 About}
+ addUserKnob {26 textabout l "" +STARTLINE T "QuickEdit v1.0 by Richard Frazer\nPlug in clips to quickly create a linear edit"}
 }
- Input {
-  inputs 0
-  name Input7
-  label "\[value number]"
-  xpos -300
-  ypos 550
-  number 7
- }
- Input {
-  inputs 0
-  name Input6
-  label "\[value number]"
-  xpos -400
-  ypos 550
-  number 6
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1002
-  input.last_lock true
-  output.first 1009
-  output.last 1009
-  before black
-  after black
-  time ""
-  name Retime6
-  xpos -400
-  ypos 600
- }
- TimeOffset {
-  time_offset 448
-  time ""
-  name TimeOffset6
-  xpos -400
-  ypos 650
- }
- Input {
-  inputs 0
-  name Input5
-  label "\[value number]"
-  xpos -500
-  ypos 550
-  number 5
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1057
-  input.last_lock true
-  output.first 1009
-  output.last 1057
-  before black
-  after black
-  time ""
-  name Retime5
-  xpos -500
-  ypos 600
- }
- TimeOffset {
-  time_offset 399
-  time ""
-  name TimeOffset5
-  xpos -500
-  ypos 650
- }
- Input {
-  inputs 0
-  name Input4
-  label "\[value number]"
-  xpos -600
-  ypos 550
-  number 4
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1047
-  input.last_lock true
-  output.first 1009
-  output.last 1047
-  before black
-  after black
-  time ""
-  name Retime4
-  xpos -600
-  ypos 600
- }
- TimeOffset {
-  time_offset 360
-  time ""
-  name TimeOffset4
-  xpos -600
-  ypos 650
- }
- Input {
-  inputs 0
-  name Input3
-  label "\[value number]"
-  xpos -700
-  ypos 550
-  number 3
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1146
-  input.last_lock true
-  output.first 1009
-  output.last 1146
-  before black
-  after black
-  time ""
-  name Retime3
-  xpos -700
-  ypos 600
- }
- TimeOffset {
-  time_offset 222
-  time ""
-  name TimeOffset3
-  xpos -700
-  ypos 650
- }
- Input {
-  inputs 0
-  name Input2
-  label "\[value number]"
-  xpos -800
-  ypos 550
-  number 2
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1079
-  input.last_lock true
-  output.first 1009
-  output.last 1079
-  before black
-  after black
-  time ""
-  name Retime2
-  xpos -800
-  ypos 600
- }
- TimeOffset {
-  time_offset 151
-  time ""
-  name TimeOffset2
-  xpos -800
-  ypos 650
- }
-push 0
- Input {
-  inputs 0
-  name Input1
-  label "\[value number]"
-  xpos -900
-  ypos 550
-  number 1
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1054
-  input.last_lock true
-  output.first 1009
-  output.last 1054
-  before black
-  after black
-  time ""
-  name Retime1
-  xpos -900
-  ypos 600
- }
- TimeOffset {
-  time_offset 105
-  time ""
-  name TimeOffset1
-  xpos -900
-  ypos 650
- }
  Input {
   inputs 0
   name Input0
   label "\[value number]"
-  xpos -1000
-  ypos 550
- }
- Retime {
-  input.first 1009
-  input.first_lock true
-  input.last 1121
-  input.last_lock true
-  output.first 1009
-  output.last 1121
-  before black
-  after black
-  time ""
-  name Retime0
-  xpos -1000
-  ypos 600
- }
- TimeOffset {
-  time_offset -8
-  time ""
-  name TimeOffset0
-  xpos -1000
-  ypos 650
- }
- Merge2 {
-  inputs 7+1
-  name MergeFrames
-  xpos -900
-  ypos 700
- }
- Retime {
-  input.first 1001
-  input.first_lock true
-  input.last 1450
-  input.last_lock true
-  output.first 1001
-  output.last 1450
-  before black
-  after black
-  time ""
-  name FinalRetime
-  xpos -900
-  ypos 750
- }
- Output {
-  name Output
   selected true
-  xpos -900
-  ypos 800
+  xpos -1000
+  ypos 450
  }
 end_group
